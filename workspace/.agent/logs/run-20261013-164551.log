@@ -1,0 +1,4 @@
+[2026-10-13 16:45:51] [INFO] 日志已开启：C:\ji_lu\python\mini_godot_agent\workspace\.agent\logs\run-20261013-164551.log
+[2026-10-13 16:45:51] [INFO] 目标：列出工作区文件
+[2026-10-13 16:45:51] [STEP 1] 调用 LLM
+[2026-10-13 16:46:36] [ERROR] LLM 调用失败：LLM 调用失败（已重试 2 次）: Connection error.
