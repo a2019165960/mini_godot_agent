@@ -33,6 +33,19 @@ def _find_godot_bin() -> str:
     )
 
 
+def _to_text(value) -> str:
+    """把 subprocess 的输出统一转成 str。
+
+    text=True 时是 str；timeout 场景在某些 Python 版本可能给 bytes。
+    两种情况都处理。
+    """
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", "ignore")
+    return value
+
+
 def register_godot_tools(registry: ToolRegistry, cfg: AgentConfig) -> None:
     workspace = cfg.workspace
     output_limit = cfg.output_limit
@@ -185,28 +198,25 @@ def register_godot_tools(registry: ToolRegistry, cfg: AgentConfig) -> None:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=seconds,  # 用 Python 控制超时
+                timeout=seconds,
                 cwd=workspace,
             )
             timed_out = False
         except subprocess.TimeoutExpired as e:
             # 场景跑满 seconds 秒是预期行为，不算失败
-            result = e
-            timed_out = True
-        except Exception as e:  # noqa: BLE001
-            return f"错误：{type(e).__name__}: {e}"
-
-        if timed_out:
-            stdout = truncate((result.stdout or b"").decode("utf-8", "ignore"), output_limit)
-            stderr = truncate((result.stderr or b"").decode("utf-8", "ignore"), output_limit)
+            # 用 helper 统一处理 str / bytes
+            stdout = truncate(_to_text(e.stdout).strip(), output_limit)
+            stderr = truncate(_to_text(e.stderr).strip(), output_limit)
             return (
                 f"运行结束：达到 {seconds}s 超时（预期行为）\n"
                 f"--- stdout ---\n{stdout}\n"
                 f"--- stderr ---\n{stderr}"
             )
+        except Exception as e:  # noqa: BLE001
+            return f"错误：{type(e).__name__}: {e}"
 
-        stdout = truncate(result.stdout.strip(), output_limit)
-        stderr = truncate(result.stderr.strip(), output_limit)
+        stdout = truncate(_to_text(result.stdout).strip(), output_limit)
+        stderr = truncate(_to_text(result.stderr).strip(), output_limit)
         return (
             f"exit_code={result.returncode}\n"
             f"--- stdout ---\n{stdout}\n"

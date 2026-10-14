@@ -19,7 +19,7 @@ from agent.loop import AgentLoop
 from agent.memory import Memory
 from tools.registry import ToolRegistry
 from tools.fs_tools import register_fs_tools
-
+from tools.godot_tools import register_godot_tools
 
 # ---------------------------------------------------------------------------
 # 参数解析
@@ -91,6 +91,7 @@ def build_agent(cfg, logger: Logger) -> AgentLoop:
     llm = LLMClient(cfg)
     registry = ToolRegistry(cfg)
     register_fs_tools(registry, cfg)
+    register_godot_tools(registry, cfg)
     memory = Memory()
     return AgentLoop(llm, registry, memory, logger, cfg)
 
